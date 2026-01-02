@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import ItemsHistory, APIParameter
+from django.db.models import Q
+from .models import ItemsHistory, APIParameter, UserPresets
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 from random import choice
@@ -10,7 +11,8 @@ import json
 
 def home(request):
     options = get_options()
-    return render(request, 'client/base.html', {"options": options})
+    presets = get_presets()
+    return render(request, 'client/base.html', {"options": options, "presets": presets})
 
 
 def get_options():
@@ -54,6 +56,53 @@ def get_options():
     marques = [p for p in params if p["sectionTitle"] == "Marques"][0]
     marques["params"].sort(key=lambda x: x["name"])
     return params
+
+
+def get_presets():
+    print("Loading presets...", end="")
+
+    presets = list(UserPresets.objects.values_list("name", flat=True).distinct())
+
+    print("DONE")
+    return presets
+
+@csrf_exempt
+def load_preset(request):
+    print("Loading preset...", end="")
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        preset_name = data.get("presetName", "")
+        choices = list(UserPresets.objects.filter(name=preset_name).values_list("choice", flat=True))
+
+        print("DONE")
+        return JsonResponse({"choices": choices})
+    except Exception as e:
+        print("ERROR")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def save_preset(request):
+    print("Saving preset...", end="")
+
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        preset_name = data.get("presetName", "")
+        new_presets = set(data.get("choices", {}))
+        old_presets = set(UserPresets.objects.filter(name=preset_name).values_list("choice", flat=True))
+        for deleted_p in old_presets - new_presets:
+            c1 = Q(name=preset_name)
+            c2 = Q(choice=deleted_p)
+            UserPresets.objects.filter(c1 & c2).delete()
+        for added_p in new_presets - old_presets:
+            saving_preset, created = UserPresets.objects.get_or_create(name=preset_name, choice=added_p)
+
+        print("DONE")
+        return JsonResponse({"status": "Presets Saved"})
+    except Exception as e:
+        print("ERROR")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def setup_session(request):

@@ -6,6 +6,59 @@ let cookies;
 let proxy;
 
 
+function savePreset() {
+    let choices = getChoices();
+    let presetName = $("#inputPresetName").val();
+    try {
+        fetch("client/save_preset/", {
+            method: "POST",
+            body: JSON.stringify({
+                presetName: presetName,
+                choices: choices
+            })
+        });
+        var presetOptions = [];
+        $("#presetSelect option").each(function () {    
+            presetOptions.push($(this).val());  
+        });
+        if (!presetOptions.includes(presetName))
+        {
+            $("#presetSelect").append($('<option>', {
+                value: presetName,
+                text: presetName
+            }));
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+
+function loadPreset() {
+    let presetName = $("#presetSelect :selected").val();
+    try {
+        fetch("client/load_preset/", {
+            method: "POST",
+            body: JSON.stringify({
+                presetName: presetName
+            })
+        })
+        .then(response => {
+            if (response.status == 200) {
+                return response.json()
+            }
+            throw new Error("[get_clothes] Error accessing Vinted");
+        })
+        .then(data => {
+            $(".form-check input").each(function () {$(this).prop("checked", false)})
+            data.choices.forEach((choice) => $(`#${choice}`).prop("checked", true));
+        });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+
 function searchForClothes() {
     loopCycle += 1;
     params = getParams();
@@ -90,6 +143,15 @@ function getParams() {
         price: price,
     }
 }
+
+
+function getChoices() {
+    let choices = [];
+    $(".form-check input:checked").each(function(){ choices.push(this.id) });
+    
+    return choices;
+}
+
 
 function populateCards(data) {
     let cards = "";

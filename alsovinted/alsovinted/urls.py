@@ -23,5 +23,7 @@ urlpatterns = [
 
     path('', client_views.home, name="home"),
     path('client/get_clothes/', client_views.get_vinted_articles, name="get_clothes"),
+    path('client/save_preset/', client_views.save_preset, name="save_preset"),
+    path('client/load_preset/', client_views.load_preset, name="load_preset"),
     path('client/setup_session/', client_views.setup_session, name="setup_session"),
 ]

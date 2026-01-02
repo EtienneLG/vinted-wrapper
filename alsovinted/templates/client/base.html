@@ -60,6 +60,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="row w-100">
+                    <div class="input-group mt-3 p-0">
+                        <select class="form-select" id="presetSelect">
+                            {% for p in presets %}
+                                <option value="{{ p }}">{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-main" type="button" id="button-presetLoad" onclick="loadPreset()">Load</button>
+                    </div>
+                    <div class="input-group mt-2 p-0">
+                        <input type="text" id="inputPresetName" placeholder="Preset name" class="form-control">
+                        <button class="btn btn-main" type="button" id="button-presetSave" onclick="savePreset()">Save</button>
+                    </div>
+                </div>
             </div>
             <div class="container-fluid text-center col-9 ms-0">
                 <div class="row" id="results">

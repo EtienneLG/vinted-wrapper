@@ -11,3 +11,8 @@ class APIParameter(models.Model):
     sub_section = models.CharField(max_length=200, null=True)
     name = models.CharField(max_length=200, null=False)
     value = models.PositiveIntegerField(null=False)
+
+class UserPresets(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=200, null=False)
+    choice =  models.CharField(max_length=200, null=False)
